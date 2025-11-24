@@ -1,0 +1,10 @@
+{
+	"id": "abyssinian-cat",
+	"name": "AbyssCAT",
+	"version": "1.0.0",
+	"minAppVersion": "0.15.0",
+	"description": "An Obsidian plugin that transforms your editor into a lightweight CAT (Computer-Assisted Translation) environment.",
+	"author": "LTan229",
+	"authorUrl": "https://github.com/LTan229",
+	"isDesktopOnly": true
+}
