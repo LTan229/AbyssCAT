@@ -17,12 +17,13 @@ It transforms your Obsidian workspace into a professional translation environmen
 
 Planned features:
 
-- [ ] Sentence-level Markdown file segmentation.
 - [ ] Dual-pane UI for side-by-side source and target text.
 - [ ] Segment status indicators (Untranslated / Draft / Approved)
-- [ ] Focus on active segment under translation.
-- [ ] DeepL API connection for automatic machine translation suggestions.
 - [ ] Translation Export with original formatting preserved.
+- [ ] Focus on active segment under translation.
+- [ ] Sentence-level Markdown file segmentation.
+- [ ] (Optional) DeepL API connection for automatic machine translation suggestions.
+
 
 ## 🛠️ Development Setup
 
