@@ -14,5 +14,5 @@
 		"strictNullChecks": true,
 		"lib": ["DOM", "ES5", "ES6", "ES7"]
 	},
-	"include": ["**/*.ts", "Views/ReactView.tsx", "Views/CATView.tsx"]
+	"include": ["**/*.ts", "src/ui/ReactView.tsx", "src/ui/CATView.tsx"]
 }
