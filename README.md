@@ -18,21 +18,21 @@ It transforms your Obsidian workspace into a professional translation environmen
 Planned features:
 
 - [x] Split Markdown (and plain text of course!) files into sentences while preserving block-level formatting.
-- [ ] Dual-pane UI for side-by-side source and target text.
-- [ ] Translation Export with original formatting preserved.
-- [ ] Focus on active segment under translation.
+- [x] Dual-pane UI for side-by-side source and target text.
+- [x] Translation Export with original formatting preserved.
 - [ ] (Optional) DeepL API connection for automatic machine translation suggestions.
   
 Read the detailed roadmap in [TODO.md](TODO.md).
 
+## 👍 Recommendation
+
+I understand that translation projects can be complex consisting of multiple files. Unfortunately, translation project management is currently out of scope for AbyssCAT.
+
+For project management, I recommend using the [Longform](https://github.com/kevboh/longform) plugin alongside AbyssCAT. 
 
 ## 🛠️ Development Setup
 
-If you want to contribute or build from source, follow the steps [here](https://github.com/obsidianmd/obsidian-sample-plugin).
-
-## 🤝 Contributing
-
-Contributions are welcome! Since this is an early-stage project, please open an **Issue** to discuss your ideas before submitting a **Pull Request (PR)**.
+Contributions are welcome! If you want to contribute or build from source, please follow the steps from [the official guidlines](https://github.com/obsidianmd/obsidian-sample-plugin).
 
 ## 📄 License
 
