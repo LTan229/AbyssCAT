@@ -72,7 +72,7 @@ export function parseMarkdown(
 		let prefix = "";
 		let content = line;
 
-		// 1. structural line check
+		// structural line check
 		if (isStructuralLine(line)) {
 			blocks.push({
 				id: generateId(),
@@ -83,7 +83,7 @@ export function parseMarkdown(
 			return;
 		}
 
-		// 2. extract prefix
+		// extract prefix
 		const match = line.match(prefixRegex);
 		if (match) {
 			prefix = match[0];
@@ -96,7 +96,7 @@ export function parseMarkdown(
 			}
 		}
 
-		// 3. sentence split
+		// sentence split
 		let rawSegments: string[] = [];
 
 		if (!content.trim()) {
@@ -126,4 +126,21 @@ export function parseMarkdown(
 		lastModified: mtime,
 		blocks: blocks,
 	};
+}
+
+export function spliceMeta(data: TranslationData): string {
+	const exportedLines = data.blocks.map((block) => {
+				const blockContent = block.segments
+					.map((seg) => {
+						if (seg.translation && seg.translation.trim() !== "") {
+							return seg.translation;
+						}
+						return seg.original;
+					})
+					.join(""); 
+	
+				return `${block.prefix}${blockContent}`;
+			});
+	
+	return exportedLines.join("\n");
 }

@@ -4,12 +4,11 @@ import {
 	Plugin,
 	PluginSettingTab,
 	Setting,
-	WorkspaceLeaf,
 	TFile,
 } from "obsidian";
 
-import { CATView, VIEW_TYPE_EXAMPLE } from "./src/ui/CATView";
-import { parseMarkdown } from "src/core/splitter";
+import { CATView, CAT_VIEW_TYPE } from "src/ui/CATView";
+import { parseMarkdown, spliceMeta } from "src/core/splitter";
 import { StorageService } from "src/services/storage";
 import { ConfirmModal } from "src/ui/modals";
 import { TranslationData } from "src/types";
@@ -30,7 +29,7 @@ export default class AbyssCAT extends Plugin {
 		await this.loadSettings();
 		this.storageService = new StorageService(this.app);
 
-		this.registerView(VIEW_TYPE_EXAMPLE, (leaf) => new CATView(leaf));
+		this.registerView(CAT_VIEW_TYPE, (leaf) => new CATView(leaf));
 
 		const parseIcon = this.addRibbonIcon(
 			"lucide-cat",
@@ -61,6 +60,21 @@ export default class AbyssCAT extends Plugin {
 				return false;
 			},
 		});
+
+		this.addCommand({
+            id: "export-translation",
+            name: "Export Translation Result",
+            checkCallback: (checking: boolean) => {
+                const activeFile = this.app.workspace.getActiveFile();
+                if (activeFile) {
+                    if (!checking) {
+                        this.exportTranslation(activeFile);
+                    }
+                    return true;
+                }
+                return false;
+            },
+        });
 	}
 
 	onunload() {}
@@ -80,13 +94,30 @@ export default class AbyssCAT extends Plugin {
 	async activateTranslationView(file: TFile) {
 		let data = await this.storageService.loadTranslationData(file);
 
-		if (data) {
-			new Notice(`Loading existing translation data...`);
-		} else {
-			data = await this.createNewTranslation(file);
+		if (!data) {
+        data = await this.createNewTranslation(file);
+    	}
+
+		let leaf = this.app.workspace.getLeavesOfType(CAT_VIEW_TYPE)[0];
+		if (!leaf) {
+			leaf = this.app.workspace.getLeaf(false);
 		}
 
-		// TODO: pass data to view
+		await leaf.setViewState({ type: CAT_VIEW_TYPE });
+		const view = leaf.view as CATView;
+		view.setTranslationData(
+			data, 
+			file, 
+			async (f, d) => {
+				console.log("💾 [Main] 正在通过 Service 保存...");
+				await this.storageService.saveTranslationData(f, d);
+			},
+			async (f) => {
+                await this.exportTranslation(f);
+            }
+	);
+
+		this.app.workspace.revealLeaf(leaf);
 	}
 
 	async createNewTranslation(file: TFile): Promise<TranslationData> {
@@ -118,45 +149,23 @@ export default class AbyssCAT extends Plugin {
 		}
 	}
 
-	async activateView() {
-		const { workspace } = this.app;
+	async exportTranslation(file: TFile) {
+        const data = await this.storageService.loadTranslationData(file);
 
-		// ckeck if view is opened
-		let leaf: WorkspaceLeaf | null = null;
-		const leaves = workspace.getLeavesOfType(VIEW_TYPE_EXAMPLE);
+        if (!data) {
+            new Notice("No translation data found. Please parse the document first.");
+            return;
+        }
 
-		if (leaves.length > 0) {
-			// if opened, get the first one
-			leaf = leaves[0];
-		} else {
-			// if not opened, create a new one
-			leaf = workspace.getLeaf(true);
-			await leaf.setViewState({ type: VIEW_TYPE_EXAMPLE, active: true });
-		}
+		new Notice(`Exporting translation for ${file.basename}...`);
 
-		// reveal the view
-		if (leaf) {
-			workspace.revealLeaf(leaf);
-		}
-	}
+		const finalContent = spliceMeta(data);
+		
+		this.storageService.saveTranslation(finalContent, file.parent, file.basename);
+    }
+
+
 }
-
-// class SampleModal extends Modal {
-// 	constructor(app: App) {
-// 		super(app);
-// 	}
-
-// 	onOpen() {
-// 		const { contentEl } = this;
-// 		contentEl.setText("Woah!");
-// 	}
-
-// 	onClose() {
-// 		const { contentEl } = this;
-// 		contentEl.empty();
-// 	}
-// }
-
 class SampleSettingTab extends PluginSettingTab {
 	plugin: AbyssCAT;
 

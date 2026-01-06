@@ -1,4 +1,4 @@
-import { App, TFile, normalizePath } from "obsidian";
+import { App, TFile, TFolder, normalizePath } from "obsidian";
 import { TranslationData } from "../types";
 
 const DATA_FOLDER = ".catdata";
@@ -44,5 +44,13 @@ export class StorageService {
 		if (await this.app.vault.adapter.exists(path)) {
 			await this.app.vault.adapter.remove(path);
 		}
+	}
+
+	async saveTranslation(content: string, parentFolder: TFolder | null, sourceFileName: string) {
+		const parentPath = parentFolder ? parentFolder.path : "/";
+		const newFileName = `${sourceFileName}_translation.md`;
+		
+		const exportFilePath = normalizePath(`${parentPath}/${newFileName}`);
+		await this.app.vault.adapter.write(exportFilePath, content);
 	}
 }

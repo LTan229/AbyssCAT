@@ -4,7 +4,7 @@ export interface Segment {
 	id: string;
 	original: string;
 	translation: string;
-	status: "original" | "translated" | "confimed";
+	status: "original" | "translated" | "confirmed";
 }
 
 export interface Block {
