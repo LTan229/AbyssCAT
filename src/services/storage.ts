@@ -46,11 +46,13 @@ export class StorageService {
 		}
 	}
 
-	async saveTranslation(content: string, parentFolder: TFolder | null, sourceFileName: string) {
+	async saveTranslation(content: string, parentFolder: TFolder | null, sourceFileName: string): Promise<string> {
 		const parentPath = parentFolder ? parentFolder.path : "/";
 		const newFileName = `${sourceFileName}_translation.md`;
 		
 		const exportFilePath = normalizePath(`${parentPath}/${newFileName}`);
 		await this.app.vault.adapter.write(exportFilePath, content);
+
+		return exportFilePath;
 	}
 }

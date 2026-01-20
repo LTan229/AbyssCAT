@@ -1,10 +1,12 @@
 import { App, Modal, Setting } from "obsidian";
 
-type ModalAction = "cancel" | "overwrite";
+type ModalAction = "cancel" | "confirm";
 
 export class ConfirmModal extends Modal {
 	title: string;
 	message: string;
+	cancelText: string;
+	confirmText: string;
 	private resolve: (value: ModalAction) => void;
 	private resolved: boolean = false;
 
@@ -12,11 +14,15 @@ export class ConfirmModal extends Modal {
 		app: App,
 		title: string,
 		message: string,
-		resolve: (value: ModalAction) => void
+		cancelText: string,
+		confirmText: string,
+		resolve: (value: ModalAction) => void,
 	) {
 		super(app);
 		this.title = title;
 		this.message = message;
+		this.cancelText = cancelText;
+		this.confirmText = confirmText;
 		this.resolve = resolve;
 	}
 
@@ -28,25 +34,25 @@ export class ConfirmModal extends Modal {
 		new Setting(contentEl)
 			.addButton((btn) =>
 				btn
-					.setButtonText("Cancel")
+					.setButtonText(this.cancelText)
 
-					.setCta() // call to action
+					.setCta()
 
 					.onClick(() => {
 						this.resolve("cancel");
 						this.resolved = true;
 						this.close();
-					})
+					}),
 			)
 			.addButton((btn) =>
 				btn
-					.setButtonText("Confirm overwrite")
+					.setButtonText(this.confirmText)
 
 					.onClick(() => {
-						this.resolve("overwrite");
+						this.resolve("confirm");
 						this.resolved = true;
 						this.close();
-					})
+					}),
 			);
 	}
 
@@ -60,10 +66,19 @@ export class ConfirmModal extends Modal {
 	static awaitUserAction(
 		app: App,
 		title: string,
-		message: string
+		message: string,
+		cancelText: string = "Cancel",
+		confitmText: string = "Confirm",
 	): Promise<ModalAction> {
 		return new Promise<ModalAction>((resolve) => {
-			new ConfirmModal(app, title, message, resolve).open();
+			new ConfirmModal(
+				app,
+				title,
+				message,
+				cancelText,
+				confitmText,
+				resolve,
+			).open();
 		});
 	}
 }

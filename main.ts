@@ -41,7 +41,7 @@ export default class AbyssCAT extends Plugin {
 				} else {
 					new Notice("Please open a markdown file to translate.");
 				}
-			}
+			},
 		);
 
 		this.addSettingTab(new SampleSettingTab(this.app, this));
@@ -62,19 +62,19 @@ export default class AbyssCAT extends Plugin {
 		});
 
 		this.addCommand({
-            id: "export-translation",
-            name: "Export Translation Result",
-            checkCallback: (checking: boolean) => {
-                const activeFile = this.app.workspace.getActiveFile();
-                if (activeFile) {
-                    if (!checking) {
-                        this.exportTranslation(activeFile);
-                    }
-                    return true;
-                }
-                return false;
-            },
-        });
+			id: "export-translation",
+			name: "Export Translation Result",
+			checkCallback: (checking: boolean) => {
+				const activeFile = this.app.workspace.getActiveFile();
+				if (activeFile) {
+					if (!checking) {
+						this.exportTranslation(activeFile);
+					}
+					return true;
+				}
+				return false;
+			},
+		});
 	}
 
 	onunload() {}
@@ -83,7 +83,7 @@ export default class AbyssCAT extends Plugin {
 		this.settings = Object.assign(
 			{},
 			DEFAULT_SETTINGS,
-			await this.loadData()
+			await this.loadData(),
 		);
 	}
 
@@ -91,12 +91,12 @@ export default class AbyssCAT extends Plugin {
 		await this.saveData(this.settings);
 	}
 
-	async activateTranslationView(file: TFile) {
+	async activateTranslationView(file: TFile, createOnExist: boolean = false) {
 		let data = await this.storageService.loadTranslationData(file);
 
-		if (!data) {
-        data = await this.createNewTranslation(file);
-    	}
+		if ((!data) || createOnExist) {
+			data = await this.createNewTranslation(file);
+		} 
 
 		let leaf = this.app.workspace.getLeavesOfType(CAT_VIEW_TYPE)[0];
 		if (!leaf) {
@@ -106,16 +106,15 @@ export default class AbyssCAT extends Plugin {
 		await leaf.setViewState({ type: CAT_VIEW_TYPE });
 		const view = leaf.view as CATView;
 		view.setTranslationData(
-			data, 
-			file, 
+			data,
+			file,
 			async (f, d) => {
-				console.log("💾 [Main] 正在通过 Service 保存...");
 				await this.storageService.saveTranslationData(f, d);
 			},
 			async (f) => {
-                await this.exportTranslation(f);
-            }
-	);
+				await this.exportTranslation(f);
+			},
+		);
 
 		this.app.workspace.revealLeaf(leaf);
 	}
@@ -124,9 +123,7 @@ export default class AbyssCAT extends Plugin {
 		new Notice(`Parsing document: ${file.name}`);
 
 		const content = await this.app.vault.read(file);
-
 		const data = parseMarkdown(content, file.path, file.stat.mtime);
-
 		await this.storageService.saveTranslationData(file, data);
 
 		new Notice(`Document parsing finished!`);
@@ -137,34 +134,50 @@ export default class AbyssCAT extends Plugin {
 	async overwriteTranslation(file: TFile) {
 		const action = await ConfirmModal.awaitUserAction(
 			this.app,
-			"Warning",
-			"Existing translation metadata found for this document. Do you want to overwrite it by re-parsing the document? This action cannot be undone. Existing translations will be lost."
+			"Overwrite Translation Metadata",
+			"Existing translation metadata found for this document. Do you want to overwrite it by re-parsing the document? This action cannot be undone. Existing translations will be lost.",
+			"Cancel",
+			"Confirm Overwrite",
 		);
-		if (action === "overwrite") {
-			new Notice("Re-parsing document...");
 
-			const newData = await this.createNewTranslation(file);
-
-			// TODO: open view with newData
+		if (action !== "confirm") {
+			return;
 		}
+
+		await this.activateTranslationView(file, true);
 	}
 
 	async exportTranslation(file: TFile) {
-        const data = await this.storageService.loadTranslationData(file);
+		const data = await this.storageService.loadTranslationData(file);
 
-        if (!data) {
-            new Notice("No translation data found. Please parse the document first.");
-            return;
-        }
+		if (!data) {
+			new Notice("No translation data found. Please parse the document first.");
+			return;
+		}
+
+		const action = await ConfirmModal.awaitUserAction(
+			this.app,
+			"Export Translation",
+			"Existing translation found for this document. Do you want to overwrite it by exporting again? This action cannot be undone. Existing exported translation will be lost.",
+			"Cancel",
+			"Confirm Overwrite",
+		);
+		if (action !== "confirm") {
+			return;
+		}
 
 		new Notice(`Exporting translation for ${file.basename}...`);
 
 		const finalContent = spliceMeta(data);
-		
-		this.storageService.saveTranslation(finalContent, file.parent, file.basename);
-    }
 
+		const path = await this.storageService.saveTranslation(
+			finalContent,
+			file.parent,
+			file.basename,
+		);
 
+		new Notice(`Translation exported at ${path}`);
+	}
 }
 class SampleSettingTab extends PluginSettingTab {
 	plugin: AbyssCAT;
@@ -189,7 +202,7 @@ class SampleSettingTab extends PluginSettingTab {
 					.onChange(async (value) => {
 						this.plugin.settings.mySetting = value;
 						await this.plugin.saveSettings();
-					})
+					}),
 			);
 	}
 }
